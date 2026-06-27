@@ -1,0 +1,21 @@
+[project]
+name = "music"
+version = "0.1.0"
+description = "music"
+readme = "README.md"
+requires-python = ">=3.12, <3.14"
+dependencies = [
+    "pygame-ce",
+    "pydub",
+    "simpleaudio",
+    "numpy",
+    "imageio-ffmpeg",
+    "textual>=8.2.7",
+]
+
+[build-system]
+requires = [
+    "setuptools>=68.0.0",
+    "wheel",
+]
+build-backend = "setuptools.build_meta"

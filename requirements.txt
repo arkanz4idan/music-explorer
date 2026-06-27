@@ -1,0 +1,7 @@
+# Runtime Python dependencies for the music app
+# pydub speed support uses ffmpeg; imageio-ffmpeg supplies a local ffmpeg binary.
+pygame-ce
+pydub
+numpy
+simpleaudio
+imageio-ffmpeg
