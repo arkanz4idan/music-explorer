@@ -1,55 +1,103 @@
 # 🎵 Music Explorer
 
-Welcome to **Music Explorer**! This is a simple, lightweight, and clean desktop audio player built using Python and Tkinter. It scans your chosen folder for music files, allows you to manage playlists, and offers features like volume control, shuffling, and looping.
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![Requirements](https://img.shields.io/badge/requirements-pinned-lightgrey.svg)](requirements.txt)
+
+A lightweight music player with both a graphical (Tkinter) and terminal (Textual) interface — fast to run, easy to extend.
 
 ---
 
-## ✨ Features
+## Table of contents
 
-- **📂 Easy Folder Navigation**: Choose any folder containing audio files, and Music Explorer will scan and import them automatically.
-- **🎧 Broad Audio Format Support**: Supports playback for `.mp3`, `.wav`, `.ogg`, and `.flac` files.
-- **🎛️ Standard Playback Controls**: Easily Play, Pause/Resume, Stop, or skip to the Next/Previous tracks.
-- **🔄 Loop Modes**: Cycle through different loop configurations:
-  - **Off**: Play list through once.
-  - **All**: Repeat the entire playlist.
-  - **One**: Repeat the currently playing track.
-- **🔀 Shuffle & Queue**: Toggle shuffle mode to randomize playlist order, which also updates and saves the queue automatically.
-- **📝 Queue Serialization**: Every time a folder is loaded or shuffled, the playback order is saved to `queue.json` in that directory, allowing other programs or future sessions to know the current sequence.
-- **💾 Settings Persistence**: Automatically remembers your settings (volume, last selected folder, last played file) across launches via a local state file (`save.json`).
+- [Features](#features)
+- [Quick start](#quick-start)
+- [Usage](#usage)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Screenshots](#screenshots)
+- [Contributing](#contributing)
+- [License](#license)
 
 ---
 
-## 🚀 Getting Started
+## Features
 
-### Prerequisites
+- ✅ Dual interfaces: GUI (Tkinter) and TUI (Textual)
+- ✅ Supports: MP3, WAV, OGG, FLAC
+- ✅ Shuffle and loop modes (Off / All / One)
+- ✅ Remembers last folder, last track, and volume
+- ✅ Persists playlist order to `queue.json`
+- ⚡ Lightweight, minimal dependencies
 
-You need **Python 3.8+** installed. Then, install the required dependencies (primarily `pygame` for audio playback and UI window configuration):
+## Quick start
+
+Recommended: run inside a virtual environment.
 
 ```bash
-pip install -r requirements.txt
-```
+# run with uv (recommended)
+uv run main.py
 
-### Running the App
-
-To start Music Explorer, execute the main script:
-
-```bash
+# or run directly with Python
 python main.py
 ```
 
-or just use uv:
+## Usage
+
+On startup the program offers a choice between GUI and Terminal UI. You can force a mode:
 
 ```bash
-uv run main.py
+python main.py -t gui    # GUI only
+python main.py -t cli    # Terminal only
 ```
+
+## Installation
+
+Create a virtual environment and install pinned dependencies:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+## Configuration
+
+Settings are saved to `save.json`. Example minimal defaults you can copy into `save.json`:
+
+```json
+{
+    "current-folder": null,
+    "current-file": null,
+    "settings": {
+        "volume": 100,
+        "shuffle": false,
+        "loop": "off"
+    },
+    "queue-file": null
+}
+```
+
+Playlist order is persisted to `queue.json` inside your music folder.
+
+## Screenshots
+
+![](assets/gui.gif)
+*GUI demo*
+
+![](assets/cli.gif)
+*Terminal demo*
+
+## Contributing
+
+- Open issues for bugs or ideas
+- Send a PR with a clear description and tests where applicable
+- Keep changes small and focused
+
+## License
+
+MIT — see the `LICENSE` file.
 
 ---
 
-## 🛠️ Project Structure
-
-- `main.py`: The Main Script
-- `gui.py`: The entry point containing the Tkinter user interface and audio playback logic.
-- `cli.py`: The entry point containing the Textual user interface and audio playback logic.
-- `[selected_music_folder]/queue.json`: Automatically created inside the selected music folder to persist the current tracks queue order.
-- `save.json`: Automatically created file storing your volume settings and last active folders.
-- `pyproject.toml`: Python package dependencies.
+Made with ❤️ — happy hacking!

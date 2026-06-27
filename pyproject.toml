@@ -1,21 +1,38 @@
 [project]
-name = "music"
+name = "music-explorer"
 version = "0.1.0"
-description = "music"
-readme = "README.md"
-requires-python = ">=3.12, <3.14"
+description = "a side project with simple and clean music player with Tkinter GUI and Textual TUI"
+readme = {file = "README.md", content-type = "text/markdown"}
+requires-python = ">=3.12"
+license = "MIT"
+authors = [
+    {name = "arkanz4idan", email = "arkanzaidanwijayatsi@gmail.com"}
+]
+keywords = ["music", "player", "audio", "pygame", "textual"]
+
+license-files = ["LICENSE"]
+
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
 dependencies = [
-    "pygame-ce",
+    "pygame-ce>=2.5.7",
     "pydub",
-    "simpleaudio",
     "numpy",
     "imageio-ffmpeg",
     "textual>=8.2.7",
 ]
 
+[project.scripts]
+music-explorer = "main:main"
+
+
 [build-system]
-requires = [
-    "setuptools>=68.0.0",
-    "wheel",
-]
+requires = ["setuptools>=68.0.0", "wheel"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+exclude = ["assets", "testme"]
