@@ -100,4 +100,4 @@ MIT — see the `LICENSE` file.
 
 ---
 
-Made with ❤️ — happy hacking!
+Made with uv, python — happy listening!
