@@ -1,4 +1,5 @@
 import pathlib
+import sys
 from pathlib import Path
 import json
 import random
@@ -20,8 +21,16 @@ from textual.timer import Timer
 parser = argparse.ArgumentParser(add_help=False)
 parser.add_argument("-d", "--directory", type=Path, help="Music folder to load")
 parser.add_argument("-q", "--queue", type=Path, help="Path to queue.json")
+parser.add_argument("-m", "--music", type=Path, help="Path to a music file to play")
 cli_args, _ = parser.parse_known_args()
+
+# Validate --music path early
+if cli_args.music and not cli_args.music.is_file():
+    print(f'Error: The Music File in the "{cli_args.music}" is missing')
+    sys.exit(1)
+
 initial_folder = str(cli_args.directory) if cli_args.directory and cli_args.directory.is_dir() else None
+initial_music_file = cli_args.music if cli_args.music else None
 
 # ---------------------------------------------------------------------------
 # Persistence helpers (shared format with gui.py)
@@ -30,7 +39,12 @@ SAVE_FILE = pathlib.Path("save.json")
 DEFAULT_STATE = {
     "current-folder": None,
     "current-file": None,
-    "settings": {"volume": 100},
+    "settings": {
+        "volume": 100,
+        "shuffle": False,
+        "loop": "off",
+    },
+    "queue-file": None,
 }
 
 
@@ -104,15 +118,21 @@ class MusicCLI(App):
     def __init__(self):
         super().__init__()
         self.state = load_state()
-        if initial_folder:
+        if initial_music_file:
+            # --music overrides: use file's parent as folder, select the file
+            self.state["current-folder"] = str(initial_music_file.parent)
+            self.state["current-file"] = str(initial_music_file)
+        elif initial_folder:
             self.state["current-folder"] = initial_folder
 
         self.playlist: list[Path] = []
         self.current_index = 0
         self.is_playing = False
         self.is_paused = False
-        self.is_shuffling = False
-        self.loop_mode = 0       # 0=off, 1=all, 2=one
+        self.is_shuffling = self.state["settings"].get("shuffle", False)
+        # Restore loop mode from saved settings
+        _loop_str = self.state["settings"].get("loop", "off")
+        self.loop_mode = {"off": 0, "all": 1, "one": 2}.get(_loop_str, 0)
         self.current_length = 0.0
         self.music_loaded = False
 
@@ -190,6 +210,12 @@ class MusicCLI(App):
         # Set initial volume bar
         vol = self.state["settings"]["volume"]
         self.query_one("#volume_bar", ProgressBar).update(progress=vol)
+
+        # Restore shuffle / loop UI from saved state
+        if self.is_shuffling:
+            self.query_one("#shuffle_label", Static).update("Shuffle: On")
+        modes_display = ["Off", "All", "One"]
+        self.query_one("#loop_label", Static).update(f"Loop: {modes_display[self.loop_mode]}")
 
         # Periodic timers (like gui.py's root.after)
         self.set_interval(0.25, self.update_progress)
@@ -299,6 +325,8 @@ class MusicCLI(App):
         if not self.playlist:
             return
         self.is_shuffling = not self.is_shuffling
+        self.state["settings"]["shuffle"] = self.is_shuffling
+        save_state(self.state)
         if self.is_shuffling:
             random.shuffle(self.playlist)
             self.current_index = 0
@@ -327,6 +355,9 @@ class MusicCLI(App):
     def toggle_loop(self):
         self.loop_mode = (self.loop_mode + 1) % 3
         modes = ["Off", "All", "One"]
+        mode_keys = ["off", "all", "one"]
+        self.state["settings"]["loop"] = mode_keys[self.loop_mode]
+        save_state(self.state)
         self.query_one("#loop_label", Static).update(f"Loop: {modes[self.loop_mode]}")
         self.query_one("#status", Static).update(f"Loop mode: {modes[self.loop_mode]}")
 

@@ -1,5 +1,7 @@
+import argparse
 import json
 import os
+import sys
 import tkinter as tk
 from pathlib import Path
 from tkinter import filedialog, messagebox
@@ -47,12 +49,29 @@ if HAVE_PYDUB:
 SAVE_FILE = Path("save.json")
 SUPPORTED_EXTENSIONS = {"mp3", "wav", "ogg", "flac"}
 
+# ---------------------------------------------------------------------------
+# Parse optional CLI arguments (forwarded from main.py)
+# ---------------------------------------------------------------------------
+_parser = argparse.ArgumentParser(add_help=False)
+_parser.add_argument("-d", "--directory", type=Path, help="Music folder")
+_parser.add_argument("-q", "--queue", type=Path, help="Queue file")
+_parser.add_argument("-m", "--music", type=Path, help="Path to a music file to play")
+_cli_args, _ = _parser.parse_known_args()
+
+# Validate --music path early
+if _cli_args.music and not _cli_args.music.is_file():
+    print(f'Error: The Music File in the "{_cli_args.music}" is missing')
+    sys.exit(1)
+
 DEFAULT_STATE = {
     "current-folder": None,
     "current-file": None,
     "settings": {
         "volume": 100,
+        "shuffle": False,
+        "loop": "off",
     },
+    "queue-file": None,
 }
 
 
@@ -96,13 +115,24 @@ def scan_folder(folder):
 def main():
     pygame.mixer.init()
     state = load_state()
+
+    # Apply CLI overrides
+    if _cli_args.directory and _cli_args.directory.is_dir():
+        state["current-folder"] = str(_cli_args.directory)
+    if _cli_args.music:
+        # Use the music file's parent folder and select that file
+        state["current-folder"] = str(_cli_args.music.parent)
+        state["current-file"] = str(_cli_args.music)
+
     playlist = []
     current_index = 0
     music_loaded = False
     is_playing = False
     is_paused = False
-    is_random = False
-    loop_mode = 0  # 0=off, 1=loop all, 2=loop one
+    is_random = state["settings"].get("shuffle", False)
+    # Restore loop mode from saved settings
+    _loop_str = state["settings"].get("loop", "off")
+    loop_mode = {"off": 0, "all": 1, "one": 2}.get(_loop_str, 0)
     current_length = 0.0
 
     root = tk.Tk()
@@ -375,6 +405,8 @@ def main():
             messagebox.showinfo("No tracks", "Choose a music folder first.")
             return
         is_random = not is_random
+        state["settings"]["shuffle"] = is_random
+        save_state(state)
         if is_random:
             random.shuffle(playlist)
             current_index = 0
@@ -399,6 +431,9 @@ def main():
         nonlocal loop_mode
         loop_mode = (loop_mode + 1) % 3
         modes = ["Off", "All", "One"]
+        mode_keys = ["off", "all", "one"]
+        state["settings"]["loop"] = mode_keys[loop_mode]
+        save_state(state)
         loop_label.config(text=f"Loop: {modes[loop_mode]}")
         status_label.config(text=f"Loop mode: {modes[loop_mode]}")
 
@@ -470,6 +505,12 @@ def main():
     volume_slider.config(command=change_volume)
 
     # ==================== INITIALIZATION ====================
+    # Restore shuffle / loop UI from saved state
+    if is_random:
+        random_label.config(text="Shuffle: On")
+    modes_display = ["Off", "All", "One"]
+    loop_label.config(text=f"Loop: {modes_display[loop_mode]}")
+
     if state["current-folder"]:
         if os.path.isdir(state["current-folder"]):
             current_folder_label.config(text=state["current-folder"])
